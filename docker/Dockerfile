@@ -71,7 +71,7 @@ RUN apt-get update -qqy \
   && ln -fs /opt/firefox-$FIREFOX_VERSION/firefox /usr/bin/firefox
 
 # Chrome webdriver
-RUN wget -nv "https://chromedriver.storage.googleapis.com/2.27/chromedriver_linux64.zip" \
+RUN wget -nv "https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedriver_linux64.zip" \
           -O "chromedriver_linux.zip" \
   && unzip "chromedriver_linux.zip" \
   && rm "chromedriver_linux.zip" \
