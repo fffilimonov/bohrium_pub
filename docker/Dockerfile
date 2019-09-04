@@ -15,12 +15,23 @@ RUN  echo "deb http://archive.ubuntu.com/ubuntu xenial main universe\n" > /etc/a
   && echo "deb http://archive.ubuntu.com/ubuntu xenial-updates main universe\n" >> /etc/apt/sources.list \
   && echo "deb http://security.ubuntu.com/ubuntu xenial-security main universe\n" >> /etc/apt/sources.list
 
+RUN apt-get update -qqy \
+  && apt-get -qqy --no-install-recommends install \
+    language-pack-en \
+    locales \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
 #locale
 RUN locale-gen en_US.UTF-8 \
   && dpkg-reconfigure --frontend noninteractive locales \
   && apt-get update -qqy \
   && apt-get -qqy --no-install-recommends install \
     language-pack-en
+
+RUN apt-get update -qqy \
+  && apt-get -qqy --no-install-recommends install \
+    tzdata \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 #Timezone
 RUN echo "${TZ}" > /etc/timezone \
