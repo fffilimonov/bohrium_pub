@@ -101,6 +101,11 @@ RUN apt-get update -qqy \
     composer \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
+RUN apt-get update -qqy \
+  && apt-get -qqy --no-install-recommends install \
+    libgconf-2-4 \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
 RUN  mkdir -p /opt/behat
 WORKDIR '/opt/behat'
 COPY composer.json /opt/behat
