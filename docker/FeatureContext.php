@@ -78,6 +78,28 @@ class FeatureContext extends MinkContext
   }
 
   /**
+    * Click some element
+    *
+    * @Then /^I click on the element "([^"]*)"$/
+    */
+  public function iClickOnTheElement($text)
+  {
+    $doc = $this->getSession()->getPage();
+    $all = $doc->findAll('css', $text);
+
+    $elements = array_filter($all, function ($element) {
+      return $element->isVisible();
+    });
+    $elements = array_values($elements);
+
+    if (count($elements) < 1) {
+        throw new \InvalidArgumentException(sprintf('Cannot find text: "%s"', '$text'));
+    }
+
+    $this->clickElement($elements[0]);
+  }
+
+  /**
     * Fill nth visible input
     *
     * @Then I fill :n input with :text
