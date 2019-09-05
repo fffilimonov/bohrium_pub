@@ -25,8 +25,11 @@ while true; do
 done;
 
 echo $USER_ID $SCEN_ID $RES_ID $Browser;
+mkdir /opt/codeception/tests/acceptance;
+echo "Feature: main" > /opt/codeception/tests/acceptance/main.feature;
+echo "Scenario: main" >> /opt/codeception/tests/acceptance/main.feature;
+redis-cli -h redis-scens -n 1 hget "$USER_ID" "$SCEN_ID" >> /opt/codeception/tests/acceptance/main.feature;
 
-redis-cli -h redis-scens -n 1 hget "$USER_ID" "$SCEN_ID" | awk '{if($0!=""){print ("    Then "$0)}}' >> /opt/behat/features/index.feature;
 export SID=$RES_ID;
 
 startTime=$(date +%s);
@@ -37,8 +40,8 @@ echo -n "$nowStr, {\"StartTime\": $startTime}, {\"Name\": \"$SCEN_ID\"}, {\"Brow
 
 timeout 20 grep -m 1 "Selenium Server is up and running" <(tail -f /var/log/selenium_output.log);
 
-cd /opt/behat;
-vendor/behat/behat/bin/behat -p $Browser
+cd /opt/codeception;
+vendor/bin/codecept run acceptance -vvv;
 exit_behat=$?;
 echo -n ",{\"Done\": $exit_behat}" | redis-cli -h redis-scens -x append $SID
 

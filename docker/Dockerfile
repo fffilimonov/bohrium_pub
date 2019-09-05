@@ -1,7 +1,5 @@
-FROM ubuntu:16.04
+FROM ubuntu:bionic-20190612
 MAINTAINER fffilimonov <fffilimonov@yandex.ru>
-
-ARG FIREFOX_VERSION=47.0.2
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
@@ -11,9 +9,9 @@ ENV LANG en_US.UTF-8
 
 USER root
 
-RUN  echo "deb http://archive.ubuntu.com/ubuntu xenial main universe\n" > /etc/apt/sources.list \
-  && echo "deb http://archive.ubuntu.com/ubuntu xenial-updates main universe\n" >> /etc/apt/sources.list \
-  && echo "deb http://security.ubuntu.com/ubuntu xenial-security main universe\n" >> /etc/apt/sources.list
+RUN  echo "deb http://archive.ubuntu.com/ubuntu bionic main universe\n" > /etc/apt/sources.list \
+  && echo "deb http://archive.ubuntu.com/ubuntu bionic-updates main universe\n" >> /etc/apt/sources.list \
+  && echo "deb http://security.ubuntu.com/ubuntu bionic-security main universe\n" >> /etc/apt/sources.list
 
 RUN apt-get update -qqy \
   && apt-get -qqy --no-install-recommends install \
@@ -58,18 +56,6 @@ RUN apt-get update -qqy \
   && apt-get -qqy install \
     xvfb
 
-#firefox
-RUN apt-get update -qqy \
-  && apt-get -qqy --no-install-recommends install firefox \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
-  && wget --no-verbose -O /tmp/firefox.tar.bz2 https://download-installer.cdn.mozilla.net/pub/firefox/releases/$FIREFOX_VERSION/linux-x86_64/en-US/firefox-$FIREFOX_VERSION.tar.bz2 \
-  && apt-get -y purge firefox \
-  && rm -rf /opt/firefox \
-  && tar -C /opt -xjf /tmp/firefox.tar.bz2 \
-  && rm /tmp/firefox.tar.bz2 \
-  && mv /opt/firefox /opt/firefox-$FIREFOX_VERSION \
-  && ln -fs /opt/firefox-$FIREFOX_VERSION/firefox /usr/bin/firefox
-
 # Chrome webdriver
 RUN wget -nv "https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedriver_linux64.zip" \
           -O "chromedriver_linux.zip" \
@@ -77,6 +63,12 @@ RUN wget -nv "https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedr
   && rm "chromedriver_linux.zip" \
   && chmod 755 chromedriver \
   && mv chromedriver /usr/bin/
+
+# libs for chrome driver
+RUN apt-get update -qqy \
+  && apt-get -qqy --no-install-recommends install \
+    libgconf-2-4 \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 # Google Chrome
 RUN apt-get -qqy update \
@@ -93,28 +85,24 @@ RUN chmod +x /opt/google/chrome/google-chrome
 #PHP and Redis
 RUN apt-get update -qqy \
   && apt-get -qqy --no-install-recommends install \
-    php7.0 \
-    php7.0-mbstring \
-    php7.0-curl \
+    php7.2 \
+    php7.2-mbstring \
+    php7.2-curl \
+    php7.2-xml \
     php-redis \
     redis-tools \
     composer \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-RUN apt-get update -qqy \
-  && apt-get -qqy --no-install-recommends install \
-    libgconf-2-4 \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
-RUN  mkdir -p /opt/behat
-WORKDIR '/opt/behat'
-COPY composer.json /opt/behat
-COPY behat.yml /opt/behat
+RUN  mkdir -p /opt/codeception
+WORKDIR '/opt/codeception'
+COPY composer.json /opt/codeception
 RUN composer install
-RUN  mkdir -p /opt/behat/features/bootstrap
-RUN  mkdir -p /opt/behat/results
-COPY index.feature /opt/behat/features
-COPY FeatureContext.php /opt/behat/features/bootstrap
+RUN ./vendor/bin/codecept init acceptance
+COPY codeception.yml /opt/codeception
+COPY ./acceptance.suite.yml /opt/codeception/tests
+COPY ./AcceptanceTester.php /opt/codeception/tests/_support
+COPY ./ScreenShotModule.php /opt/codeception/tests/_support
 
 COPY selenium /etc/init.d/selenium
 RUN chmod +x /etc/init.d/selenium
