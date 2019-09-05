@@ -38,9 +38,9 @@ class AcceptanceTester extends \Codeception\Actor
     }
 
     /**
-     * @Then fill field :field with :text
+     * @Then I fill field :field with :text
      */
-    public function IseeFillField($field, $text)
+    public function IfillFieldWithText($field, $text)
     {
         $this->fillField($field, $text);
     }
